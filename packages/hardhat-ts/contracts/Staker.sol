@@ -6,10 +6,10 @@ import './ExampleExternalContract.sol';
 
 contract Staker {
   ExampleExternalContract public exampleExternalContract;
-  mapping(address => uint256) public balances;
-  uint256 public deadline = block.timestamp + 60;
-  uint256 public threshold = 2 ether;
+  uint256 public deadline = block.timestamp + 30 seconds;
+  uint256 public threshold = 1 ether;
 
+  mapping(address => uint256) public balances;
   event Stake(address from, uint256 amount);
 
   constructor(address exampleExternalContractAddress) {
@@ -23,16 +23,16 @@ contract Staker {
     // amount of wei
     uint256 amount = msg.value;
     require(amount > 0, 'Not enough amount');
-    balances[from] = amount;
+    balances[from] += amount;
 
     emit Stake(from, amount);
   }
 
   // TODO: After some `deadline` allow anyone to call an `execute()` function
   //  It should call `exampleExternalContract.complete{value: address(this).balance}()` to send all the value
-  function execute() public {
-    require(block.timestamp >= deadline, 'Not reached the deadline');
-    exampleExternalContract.complete{value: address(this).balance}();
+  function execute() public canExecute {
+    (bool sent, ) = address(exampleExternalContract).call{value: address(this).balance}(abi.encodeWithSignature('complete()'));
+    require(sent, 'exampleExternalContract.complete failed');
   }
 
   // TODO: if the `threshold` was not met, allow everyone to call a `withdraw()` function
@@ -41,26 +41,45 @@ contract Staker {
     uint256 balance = balances[from];
     require(balance > 0, 'Not have balance');
 
+    balances[from] = 0;
+
     (bool sent, bytes memory data) = from.call{value: balance}('');
     require(sent, 'Failed to send Ether');
   }
 
   // TODO: Add a `timeLeft()` view function that returns the time left before the deadline for the frontend
-  function timeleft() public view returns (uint256) {
-    uint256 left = deadline - block.timestamp;
-    if (left <= 0) {
+  function timeLeft() public view returns (uint256 timeleft) {
+    if (block.timestamp >= deadline) {
       return 0;
+    } else {
+      return deadline - block.timestamp;
     }
-    return left;
   }
 
   // TODO: Add the `receive()` special function that receives eth and calls stake()
+  receive() external payable {
+    this.stake{value: msg.value}();
+  }
+
   modifier canWithdraw() {
     uint256 currentBalance = address(this).balance;
-    bool haveTime = block.timestamp <= deadline;
+    bool haveTime = timeLeft() > 0;
     bool reached = (currentBalance / 1 ether) >= threshold;
 
     require(!haveTime && !reached, "Can't withdraw");
+    _;
+  }
+
+  modifier canExecute() {
+    uint256 currentBalance = address(this).balance;
+    bool haveTime = timeLeft() > 0;
+    bool reached = currentBalance >= threshold;
+    //bool isCompleted = exampleExternalContract.completed();
+    console.log(haveTime);
+    console.log(currentBalance);
+    console.log(reached);
+
+    require(haveTime && reached, "Can't execute");
     _;
   }
 }
