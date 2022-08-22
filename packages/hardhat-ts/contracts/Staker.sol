@@ -46,6 +46,13 @@ contract Staker {
   }
 
   // TODO: Add a `timeLeft()` view function that returns the time left before the deadline for the frontend
+  function timeleft() public view returns (uint256) {
+    uint256 left = deadline - block.timestamp;
+    if (left <= 0) {
+      return 0;
+    }
+    return left;
+  }
 
   // TODO: Add the `receive()` special function that receives eth and calls stake()
   modifier canWithdraw() {
