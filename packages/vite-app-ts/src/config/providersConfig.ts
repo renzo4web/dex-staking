@@ -12,7 +12,7 @@ const DEBUG = true;
 // -------------------
 // 📡 What chain are your contracts deployed to? 🤚🏽  Set your target frontend network
 // -------------------
-export const targetNetworkInfo: TNetworkInfo = NETWORKS.localhost;
+export const targetNetworkInfo: TNetworkInfo = NETWORKS.goerli;
 // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 if (DEBUG) console.log('📡 Connecting to Mainnet Ethereum');
 
@@ -24,7 +24,7 @@ if (DEBUG) console.log('📡 Connecting to Mainnet Ethereum');
 // const mainnetProvider = new InfuraProvider("mainnet",INFURA_ID);
 // attempt to connect to our own scaffold eth rpc and if that fails fall back to infura...
 const mainnetScaffoldEthProvider = new StaticJsonRpcProvider('https://rpc.scaffoldeth.io:48544');
-const mainnetInfura = new StaticJsonRpcProvider('https://mainnet.infura.io/v3/' + INFURA_ID);
+const mainnetInfura = new StaticJsonRpcProvider('https://goerli.infura.io/v3/' + INFURA_ID);
 //const mainnetLightPool = new StaticJsonRpcProvider('https://main-light.eth.linkpool.io/');
 export const mainnetProvider =
   mainnetScaffoldEthProvider && mainnetScaffoldEthProvider._network ? mainnetScaffoldEthProvider : mainnetInfura;

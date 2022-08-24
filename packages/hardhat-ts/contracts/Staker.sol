@@ -6,7 +6,7 @@ import './ExampleExternalContract.sol';
 
 contract Staker {
   ExampleExternalContract public exampleExternalContract;
-  uint256 public deadline = block.timestamp + 30 seconds;
+  uint256 public deadline = block.timestamp + 60 seconds;
   uint256 public threshold = 1 ether;
 
   mapping(address => uint256) public balances;

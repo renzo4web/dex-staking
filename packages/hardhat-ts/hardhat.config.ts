@@ -10,6 +10,7 @@ import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@tenderly/hardhat-tenderly';
 import 'hardhat-deploy';
+import "dotenv/config";
 // not required as we are using @nomiclabs/hardhat-ethers@npm:hardhat-deploy-ethers
 
 // import 'solidity-coverage';
@@ -36,7 +37,7 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 //
 // Select the network you want to deploy to here:
 //
-const defaultNetwork = 'localhost';
+const defaultNetwork = 'goerli';
 
 const getMnemonic = () => {
   try {
@@ -99,9 +100,7 @@ const config: HardhatUserConfig = {
     },
     goerli: {
       url: 'https://goerli.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad', // <---- YOUR INFURA ID! (or it won't work)
-      accounts: {
-        mnemonic: getMnemonic(),
-      },
+      accounts: [process.env.GOERLI_DEPLOYER_PRIV_KEY || ""]
     },
     xdai: {
       url: 'https://rpc.xdaichain.com/',
