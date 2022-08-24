@@ -79,7 +79,7 @@ contract Staker {
     console.log(currentBalance);
     console.log(reached);
 
-    require(haveTime && reached, "Can't execute");
+    require(!haveTime && reached, "Can't execute");
     _;
   }
 }
