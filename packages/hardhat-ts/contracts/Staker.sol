@@ -30,13 +30,20 @@ contract Staker {
 
   // TODO: After some `deadline` allow anyone to call an `execute()` function
   //  It should call `exampleExternalContract.complete{value: address(this).balance}()` to send all the value
-  function execute() public canExecute {
-    (bool sent, ) = address(exampleExternalContract).call{value: address(this).balance}(abi.encodeWithSignature('complete()'));
-    require(sent, 'exampleExternalContract.complete failed');
+  function execute() public deadlineReached(true) stakeNotCompleted {
+    uint256 currentBalance = address(this).balance;
+    bool reached = currentBalance >= threshold;
+
+    require(reached, 'balance not reached');
+
+    bool isCompleted = exampleExternalContract.completed();
+    console.log('isCompleted', isCompleted);
+
+    exampleExternalContract.complete{value: currentBalance}();
   }
 
   // TODO: if the `threshold` was not met, allow everyone to call a `withdraw()` function
-  function withdraw() public payable canWithdraw {
+  function withdraw() public payable deadlineReached(true) stakeNotCompleted {
     address from = msg.sender;
     uint256 balance = balances[from];
     require(balance > 0, 'Not have balance');
@@ -62,6 +69,7 @@ contract Staker {
   }
 
   modifier canWithdraw() {
+    console.log('Withdraw');
     uint256 currentBalance = address(this).balance;
     bool haveTime = timeLeft() > 0;
     bool reached = (currentBalance / 1 ether) >= threshold;
@@ -70,16 +78,20 @@ contract Staker {
     _;
   }
 
-  modifier canExecute() {
-    uint256 currentBalance = address(this).balance;
-    bool haveTime = timeLeft() > 0;
-    bool reached = currentBalance >= threshold;
-    //bool isCompleted = exampleExternalContract.completed();
-    console.log(haveTime);
-    console.log(currentBalance);
-    console.log(reached);
+  modifier deadlineReached(bool reached) {
+    uint256 time = timeLeft();
 
-    require(!haveTime && reached, "Can't execute");
+    if (reached) {
+      require(time == 0, 'Deadline in not reached');
+    } else {
+      require(time > 0, 'Deadline already reached');
+    }
+
+    _;
+  }
+  modifier stakeNotCompleted() {
+    bool completed = exampleExternalContract.completed();
+    require(!completed, 'staking process already completed');
     _;
   }
 }
